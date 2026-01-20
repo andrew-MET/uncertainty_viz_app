@@ -7,3 +7,5 @@ datetime
 pandas
 uvicorn
 netCDF4
+pydantic
+python-dotenv
