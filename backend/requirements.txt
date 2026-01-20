@@ -9,3 +9,5 @@ uvicorn
 netCDF4
 pydantic
 python-dotenv
+pydantic-settings
+

@@ -1,90 +1,18 @@
-from fastapi import FastAPI, HTTPException, Query
-import xarray as xr
-import numpy as np
-from pathlib import Path
+from fastapi import APIRouter, Query, HTTPException
 from typing import Literal
 from datetime import datetime, timezone
 from pandas import to_datetime
+import xarray as xr
+import numpy as np
 
-app = FastAPI()
-DATA_DIR = Path("data")
+from app.settings import settings
+from app.utils import dttm_to_filename, short_param_to_ncdf_param
+from app.projections import latlon_to_lcc
 
-
-def latlon_to_lcc(lon, lat, params):
-    """
-    Convert latitude/longitude to Lambert Conformal Conic x/y.
-    lon, lat in degrees
-    params must contain:
-      - standard_parallel (list or tuple, length 1)
-      - latitude_of_projection_origin
-      - longitude_of_central_meridian
-      - earth_radius
-    """
-
-    # Convert to radians
-    phi = np.radians(lat)
-    lam = np.radians(lon)
-
-    phi1 = np.radians(params['standard_parallel'][0])
-    phi0 = np.radians(params['latitude_of_projection_origin'])
-    lam0 = np.radians(params['longitude_of_central_meridian'])
-    R    = params['earth_radius']
-
-    # LCC constants
-    n = np.sin(phi1)
-
-    F = (R * np.cos(phi1) / n) * \
-        (np.tan(np.pi / 4 + phi1 / 2) ** n)
-
-    rho  = F / (np.tan(np.pi / 4 + phi / 2) ** n)
-    rho0 = F / (np.tan(np.pi / 4 + phi0 / 2) ** n)
-
-    x = rho * np.sin(n * (lam - lam0))
-    y = rho0 - rho * np.cos(n * (lam - lam0))
-
-    print("x:" + str(x) + " y:" + str(y))
-
-    return x, y
-
-
-
-
-def dttm_to_filename(dttm:str, model:str) -> Path:
-  """
-  Generate the filename from the datetime (YYYYMMDDHH)  
-  :param dttm: Date time string in YYYYMMDDHH format
-  :param model: The name of the forecast model
-  Returns the filename
-  """
-
-  dttm = f"{dttm[:8]}T{dttm[8:]}Z"
-  file_name = f"{model}_{dttm}.nc"
-  return DATA_DIR / file_name
-
-
-
-def short_param_to_ncdf_param(param: str):
-  """
-  Convert the parameter shortname that the API recieves to the 
-  name of the parameter in the netcdf file
-  
-  :param param: short name for the parameter
-  Returns the netcdf name of the giveb parameter
-  """
-  params = {
-    "temp":   "air_temperature_2m",
-    "press":  "air_pressure_at_sea_level",
-    "cloud":  "cloud_area_fraction",
-    "precip": "precipitation_amount_acc",
-    "wind":   ["x_wind_10m", "y_wind_10m"]
-  }
-
-  nc_name = params[param]
-  return nc_name
-
+router = APIRouter(prefix="/api", tags=["timeseries"])
 
 # timeseries endpoint - get request
-@app.get("/api/timeseries")
+@router.get("/timeseries")
 async def get_timeseries(
   lat: float = Query(..., ge = -90, le = 90),
   lon: float = Query(..., ge = -180, le = 180),
@@ -92,13 +20,16 @@ async def get_timeseries(
   model: str = Query(...),
   param: Literal["temp", "press", "cloud", "precip", "wind"] = Query(...)
 ):
+  
+  print(dttm)
 
   try:
 
     datetime.strptime(dttm, "%Y%m%d%H")
 
     nc_var = short_param_to_ncdf_param(param)
-    file_path = dttm_to_filename(dttm, model)
+    file_path = dttm_to_filename(dttm, model, settings.DATA_DIR)
+    print(file_path)
     
     # Validate file path
     if not file_path.exists():
