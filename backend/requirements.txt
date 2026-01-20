@@ -1,0 +1,9 @@
+fastapi
+xarray
+numpy
+pathlib
+typing
+datetime
+pandas
+uvicorn
+netCDF4
