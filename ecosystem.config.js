@@ -2,18 +2,19 @@ module.exports = {
   apps: [
     {
       name: "sveltekit-app",
-      cwd: "/path/to/your/sveltekit",
+      cwd: "/home/andrewts/uncertainty_viz/app/uncertainty_viz_app/frontend",
       script: "node",
       args: "build",
       env: {
-        PORT: 3000
+        NODE_ENV: "production",
+        FASTAPI_BASE: "http://127.0.0.1:8000"
       }
     },
     {
       name: "fastapi-api",
-      cwd: "/path/to/your/backend",
-      script: "uvicorn",
-      args: "app.main:app --host 127.0.0.1 --port 8000",
+      cwd: "/home/andrewts/uncertainty_viz/app/uncertainty_viz_app/backend",
+      script: "/home/andrewts/uncertainty_viz/app/uncertainty_viz_app/backend/venv-api/bin/python",
+      args: "-m uvicorn app.main:app --host 127.0.0.1 --port 8000",
     }
   ]
 };
