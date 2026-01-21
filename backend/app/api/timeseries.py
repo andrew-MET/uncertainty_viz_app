@@ -6,13 +6,13 @@ import xarray as xr
 import numpy as np
 
 from app.settings import settings
-from app.utils import dttm_to_filename, short_param_to_ncdf_param
-from app.projections import latlon_to_lcc
+from app.utils import dttm_to_filename, short_param_to_ncdf_param, short_param_to_deode_param, deode_filename, scale_deode
+from app.projections import latlon_to_lcc, latlon_to_web_mercator
 
 router = APIRouter(prefix="/api", tags=["timeseries"])
 
-# timeseries endpoint - get request
-@router.get("/timeseries")
+# cf complient timeseries endpoint - get request
+@router.get("/cf-timeseries")
 async def get_timeseries(
   lat: float = Query(..., ge = -90, le = 90),
   lon: float = Query(..., ge = -180, le = 180),
@@ -21,8 +21,6 @@ async def get_timeseries(
   param: Literal["temp", "press", "cloud", "precip", "wind"] = Query(...)
 ):
   
-  print(dttm)
-
   try:
 
     datetime.strptime(dttm, "%Y%m%d%H")
@@ -97,6 +95,81 @@ async def get_timeseries(
       for idx, member in enumerate(ens_mbrs):
         key = f"mbr{member:03d}"
         data[key] = ts[:, idx].tolist()
+
+      result = {"dttm": dttm, "data": data}
+
+      return result
+    
+  except ValueError as e:
+    raise HTTPException(status_code = 400, detail = str(e))
+  except HTTPException:
+    raise
+  except Exception as e:
+    raise HTTPException(status_code = 500, detail = str(e))
+
+
+# Time series for deode specific netcdf files
+# Separate file for each param, not cf standard names
+# In web mercator projection
+# Data stored as 2-byte integers - need scaling
+@router.get("/deode-timeseries")
+async def get_timeseries(
+  lat: float = Query(..., ge = -90, le = 90),
+  lon: float = Query(..., ge = -180, le = 180),
+  dttm: str = Query(..., pattern = r"\d{10}$"),
+  model: str = Query(...),
+  param: Literal["temp", "press", "cloud", "precip", "wind"] = Query(...)
+):
+  
+  try:
+
+    datetime.strptime(dttm, "%Y%m%d%H")
+
+    nc_var_info = short_param_to_deode_param(param)
+    file_path = deode_filename(nc_var_info["filename"], settings.DATA_DIR)
+    print(file_path)
+    
+    # Validate file path
+    if not file_path.exists():
+      raise HTTPException(status_code=404, detail="Dataset not found")
+
+    # Get the data
+    with xr.open_dataset(file_path) as ds:
+
+      # Requested lat and lon to projected coords
+      x, y = latlon_to_web_mercator(lon, lat)
+
+      # Nearest grid point by subtraction
+      x_grid = ds["lon"].values
+      y_grid = ds["lat"].values
+
+      x_min, x_max = x_grid.min(), x_grid.max()
+      y_min, y_max = y_grid.min(), y_grid.max()
+
+      if not (x_min <= x <= x_max):
+        raise ValueError(f"x={x:.2f} outside grid bounds [{x_min:.2f}, {x_max:.2f}]")
+      if not (y_min <= y <= y_max):
+        raise ValueError(f"y={y:.2f} outside grid bounds [{y_min:.2f}, {y_max:.2f}]")
+      
+      x_idx = int(np.abs(x_grid - x).argmin())
+      y_idx = int(np.abs(y_grid - y).argmin())
+
+      print("x:" + str(x_idx) + " y:" + str(y_idx))
+
+      # Extract the timeseries for the requested variable
+      ts = ds[nc_var_info["paramname"]].isel(lon = x_idx, lat = y_idx).values
+      ts = scale_deode(ts, ds[nc_var_info["paramname"]].attrs)
+
+      # Get the times - they are in "%Y-%m%-%d %H:%M" - need to add the "%S" for consistency
+      dttm =  list(map(lambda s: s + ":00", ds["valid_time"].values))
+
+      # Get the ensemble members and generate the json output: {dttm: [...], mbr000: [...], mbr001: [...], ...}
+      ens_mbrs = ds["member"].values
+
+      data = {}
+      for idx, member in enumerate(ens_mbrs):
+        key = f"mbr{member:03d}"
+        data[key] = ts[idx, :].tolist()
 
       result = {"dttm": dttm, "data": data}
 
