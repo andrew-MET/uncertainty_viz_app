@@ -169,8 +169,9 @@ async def get_timeseries(
 
 
       # Extract the timeseries for the requested variable
-      ts = ds[nc_var_info["paramname"]].isel(lon = x_idx, lat = y_idx).values
-
+      nc_data = ds[nc_var_info["paramname"]].isel(lon = x_idx, lat = y_idx).load()
+      ts = nc_data.values
+      
       t4 = time.perf_counter()
       print("read: ", t4 - t3)
 
