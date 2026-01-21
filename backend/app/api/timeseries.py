@@ -117,7 +117,6 @@ async def get_timeseries(
   lat: float = Query(..., ge = -90, le = 90),
   lon: float = Query(..., ge = -180, le = 180),
   dttm: str = Query(..., pattern = r"\d{10}$"),
-  model: str = Query(...),
   param: Literal["temp", "press", "cloud", "precip", "wind"] = Query(...)
 ):
   
