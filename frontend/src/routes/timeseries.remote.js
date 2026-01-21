@@ -17,7 +17,7 @@ const objectToQueryString = async queryParameters => {
 };
 
 export const getTimeseries = query("unchecked", async (data) => {
-  const url = await `${env.FASTAPI_BASE}/api/timeseries${await objectToQueryString(data)}`
+  const url = await `${env.FASTAPI_BASE}/api/deode-timeseries${await objectToQueryString(data)}`
   try {
     const response = await fetch(url);
     if (!response.ok) {

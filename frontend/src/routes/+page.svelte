@@ -44,7 +44,7 @@
     lat: lnglat.lat,
     dttm: dttm,
     param: selectedParam.name,
-    model: model,
+    //model: model,
     accum: selectedParam.accum
   })
 
