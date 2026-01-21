@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pandas import to_datetime
 import xarray as xr
 import numpy as np
+import time
 
 from app.settings import settings
 from app.utils import dttm_to_filename, short_param_to_ncdf_param, short_param_to_deode_param, deode_filename, scale_deode
@@ -133,10 +134,19 @@ async def get_timeseries(
       raise HTTPException(status_code=404, detail="Dataset not found")
 
     # Get the data
+    t0 = time.perf_counter()
+
     with xr.open_dataset(file_path) as ds:
+
+      t1 = time.perf_counter()
+      print("open: ", t1 - t0)
 
       # Requested lat and lon to projected coords
       x, y = latlon_to_web_mercator(lon, lat)
+
+      t2 = time.perf_counter()
+      print("reproject: ", t2 - t1)
+
 
       # Nearest grid point by subtraction
       x_grid = ds["lon"].values
@@ -154,13 +164,27 @@ async def get_timeseries(
       y_idx = int(np.abs(y_grid - y).argmin())
 
       print("x:" + str(x_idx) + " y:" + str(y_idx))
+      t3 = time.perf_counter()
+      print("find indices: ", t3 - t2)
+
 
       # Extract the timeseries for the requested variable
       ts = ds[nc_var_info["paramname"]].isel(lon = x_idx, lat = y_idx).values
+
+      t4 = time.perf_counter()
+      print("read: ", t4 - t3)
+
       ts = scale_deode(ts, ds[nc_var_info["paramname"]].attrs)
+
+      t5 = time.perf_counter()
+      print("rescale: ", t5 - t4)
+
 
       # Get the times - they are in "%Y-%m%-%d %H:%M" - need to add the "%S" for consistency
       dttm =  list(map(lambda s: s + ":00", ds["valid_time"].values))
+      t6 = time.perf_counter()
+      print("dttm: ", t6 - t5)
+
 
       # Get the ensemble members and generate the json output: {dttm: [...], mbr000: [...], mbr001: [...], ...}
       ens_mbrs = ds["member"].values
@@ -171,6 +195,9 @@ async def get_timeseries(
         data[key] = ts[idx, :].tolist()
 
       result = {"dttm": dttm, "data": data}
+      t7 = time.perf_counter()
+      print("to json: ", t7 - t6)
+
 
       return result
     
