@@ -133,7 +133,7 @@
       class="map-container" 
       style="https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"
       zoom={4}
-      center={{ lng: 10.75, lat: 64.5}}
+      center={{ lng: 10, lat: 50}}
       onmousedown={(ev) => {        
         lnglat = ev.lngLat; // cursor location
       }}

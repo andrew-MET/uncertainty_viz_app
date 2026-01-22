@@ -193,7 +193,7 @@ async def get_timeseries(
       data = {}
       for idx, member in enumerate(ens_mbrs):
         key = f"mbr{member:03d}"
-        data[key] = ts[idx, :].tolist()
+        data[key] = np.round(ts[idx, :], 2).tolist()
 
       result = {"dttm": dttm, "data": data}
       t7 = time.perf_counter()
