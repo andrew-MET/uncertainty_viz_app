@@ -18,6 +18,7 @@
   const params = [
     {text: "2m Temperature", name: "temp"},
     {text: "10m Wind Speed", name: "wind"},
+    {text: "100m Wind Speed", name: "wind100"},
     {text: "Cloud Fraction", name: "cloud"},
     {text: "Sea Level Pressure", name: "press"},
     {text: "Total Precipitation", name: "precip"},
@@ -32,6 +33,7 @@
   const colours = {
     temp: {plume: ["#FCC", "#F88", "#F22"], stack: ["#F22", "#F55", "#F88", "#FBB", "#FDD"] },
     wind: {plume: ["#EFEDF5", "#BCBDDC", "#756BB1"], stack: ["#54278F","#756BB1","#9E9AC8","#BCBDDC","#DADAEB","#F2F0F7"]},
+    wind100: {plume: ["#EFEDF5", "#BCBDDC", "#756BB1"], stack: ["#54278F","#756BB1","#9E9AC8","#BCBDDC","#DADAEB","#F2F0F7"]},
     cloud: {plume: ["#CCC", "#999", "#666"], stack: ["#252525","#636363","#969696","#BDBDBD","#D9D9D9","#F7F7F7"] },
     press: {plume: ["#FFFDD0", "#FFFF8F", "#FF0"], stack: ["#BD0026","#F03B20","#FD8D3C","#FECC5C","#FFFFB2"] },
     precip: {plume: ["#DEEBF7", "#9ECAE1", "#3182BD"], stack: ["#08519C","#3182BD","#6BAED6","#9ECAE1","#C6DBEF","#EFF3FF"] }

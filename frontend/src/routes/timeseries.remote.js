@@ -39,6 +39,7 @@ export const getTimeseries = query("unchecked", async (data) => {
       mbrNames.forEach((e) => result.data[e] = decum(result.data[e], data.accum))
     }
 
+    console.log(result)
     return result
   } catch (error) {
     console.error(error.message);
