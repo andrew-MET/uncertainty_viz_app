@@ -1,11 +1,15 @@
 <script>
-	import favicon from '$lib/assets/favicon.svg';
+  
+  import '@fontsource-variable/winky-sans';
+	import { style } from 'd3';
+  let { children } = $props()
 
-	let { children } = $props();
 </script>
 
-<svelte:head>
-	<link rel="icon" href={favicon} />
-</svelte:head>
-
 {@render children()}
+
+<style>
+	:global(body) {
+    font-family: 'Winky Sans Variable', sans-serif;
+  }
+</style>

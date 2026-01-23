@@ -12,12 +12,12 @@
     gap = 3,
     fontSize = "1.2em",
     fontWeight = "normal",
-    comparatorChosenFill = "#777",
-    comparatorFill = "#222",
-    comparatorChosenText = "#EEE",
-    comparatorText = "#CCC",
-    comparatorStroke = "#CCC",
-    comparatorChosenStroke = "#111",
+    comparatorChosenFill = "#CCC",
+    comparatorFill = "#EEE",
+    comparatorChosenText = "#333",
+    comparatorText = "#111",
+    comparatorStroke = "#333",
+    comparatorChosenStroke = "#EEE",
     whichComparators 
   } = $props()
 

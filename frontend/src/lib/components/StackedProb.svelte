@@ -186,7 +186,7 @@
 
         </Data>
       </Svg>
-      <Tooltip data={binnedData} tooltipWidth={200} opacity={0.9} background="#222" textColour="#CCC" border="#CCC"/>
+      <Tooltip data={binnedData} tooltipWidth={200} opacity={0.9} background="#EEE" textColour="#333" border="#333"/>
     </WithTooltip>
   </div>
 

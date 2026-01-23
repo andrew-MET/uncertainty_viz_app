@@ -5,7 +5,7 @@
   
   let { xAccessor, yAccessors, colour = "black", highlightColour = "steelblue", noHighlightColour = "#555", width = 1} = $props()
 
-  let lineColors = $state(Array(yAccessors.length).fill(colour))
+  let lineColors = $derived(Array(yAccessors.length).fill(colour))
   let highLightLine = $state("")
   let strokeWidth = $state(Array(yAccessors.length).fill(width))
   
