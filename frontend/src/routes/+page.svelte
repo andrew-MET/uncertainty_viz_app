@@ -276,7 +276,7 @@
   }
 
   :global(.map-container) {
-    height: 800px;
+    height: 500px;
     padding: auto 50px auto;
   }
 
